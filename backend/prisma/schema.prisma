@@ -7,6 +7,24 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  ADMIN
+  DEVELOPER
+  VIEWER
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.VarChar(36)
+  email        String        @unique @db.VarChar(255)
+  name         String        @db.VarChar(255)
+  role         UserRole      @default(DEVELOPER)
+  created_at   DateTime      @default(now()) @db.Timestamp(0)
+  updated_at   DateTime      @default(now()) @updatedAt @db.Timestamp(0)
+  audit_events AuditEvent[]
+
+  @@map("users")
+}
+
 model Project {
   id             String         @id @default(uuid()) @db.VarChar(36)
   gcp_project_id String         @unique @db.VarChar(255)
@@ -18,18 +36,45 @@ model Project {
 }
 
 model QuotaMetric {
-  id                     String            @id @default(uuid()) @db.VarChar(36)
-  project_id             String            @db.VarChar(36)
-  metric_name            String            @db.VarChar(255)
-  region                 String            @db.VarChar(100)
-  current_usage          Float             @db.Float
-  quota_limit            Float             @db.Float
-  utilization_percentage Float             @db.Float
-  last_synced_at         DateTime          @default(now()) @updatedAt @db.Timestamp(0)
-  project                Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  id                     String             @id @default(uuid()) @db.VarChar(36)
+  project_id             String             @db.VarChar(36)
+  metric_name            String             @db.VarChar(255)
+  region                 String             @db.VarChar(100)
+  current_usage          Float              @db.Float
+  quota_limit            Float              @db.Float
+  utilization_percentage Float              @db.Float
+  last_synced_at         DateTime           @default(now()) @updatedAt @db.Timestamp(0)
+  project                Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
   increase_requests      IncreaseRequest[]
+  usage_observations     UsageObservation[]
+  demand_forecasts       DemandForecast[]
 
+  @@index([project_id, metric_name, region])
   @@map("quota_metrics")
+}
+
+model UsageObservation {
+  id              String      @id @default(uuid()) @db.VarChar(36)
+  quota_metric_id String      @db.VarChar(36)
+  usage_value     Float       @db.Float
+  observed_at     DateTime    @default(now()) @db.Timestamp(0)
+  quota_metric    QuotaMetric @relation(fields: [quota_metric_id], references: [id], onDelete: Cascade)
+
+  @@index([quota_metric_id, observed_at])
+  @@map("usage_observations")
+}
+
+model DemandForecast {
+  id                    String      @id @default(uuid()) @db.VarChar(36)
+  quota_metric_id       String      @db.VarChar(36)
+  projected_burn_rate   Float       @db.Float
+  days_to_saturation    Int
+  forecast_horizon_days Int         @default(30)
+  generated_at          DateTime    @default(now()) @db.Timestamp(0)
+  quota_metric          QuotaMetric @relation(fields: [quota_metric_id], references: [id], onDelete: Cascade)
+
+  @@index([quota_metric_id, generated_at])
+  @@map("demand_forecasts")
 }
 
 enum RequestStatus {
@@ -49,10 +94,38 @@ model IncreaseRequest {
   requested_limit        Float         @db.Float
   business_justification String        @db.Text
   status                 RequestStatus @default(PENDING)
+  confidence_score       Int           @default(75)
   admin_comments         String?       @db.Text
   created_at             DateTime      @default(now()) @db.Timestamp(0)
   updated_at             DateTime      @default(now()) @updatedAt @db.Timestamp(0)
   quota_metric           QuotaMetric   @relation(fields: [quota_metric_id], references: [id], onDelete: Cascade)
 
+  @@index([quota_metric_id, status])
   @@map("increase_requests")
+}
+
+model Notification {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  title      String   @db.VarChar(255)
+  message    String   @db.Text
+  channel    String   @default("webhook") @db.VarChar(50)
+  severity   String   @default("info") @db.VarChar(20)
+  delivered  Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@map("notifications")
+}
+
+model AuditEvent {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  user_id       String?  @db.VarChar(36)
+  action        String   @db.VarChar(100)
+  resource_type String   @db.VarChar(50)
+  resource_id   String   @db.VarChar(100)
+  metadata      String?  @db.Text
+  created_at    DateTime @default(now()) @db.Timestamp(0)
+  user          User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([action, resource_type, created_at])
+  @@map("audit_events")
 }
