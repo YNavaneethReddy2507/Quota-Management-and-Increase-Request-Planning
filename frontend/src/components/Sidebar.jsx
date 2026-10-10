@@ -24,15 +24,25 @@ export default function Sidebar({
   const navItems = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: 'Dashboard Overview',
       icon: LayoutDashboard,
-      badge: atRiskCount > 0 ? `${atRiskCount} At Risk` : null,
+      badge: atRiskCount > 0 ? `${atRiskCount} Risk` : null,
       badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
     },
     {
       id: 'quotas',
-      label: 'Quota Explorer',
+      label: 'Quota Inventory',
       icon: Gauge,
+    },
+    {
+      id: 'analytics',
+      label: 'Historical Analytics',
+      icon: Layers,
+    },
+    {
+      id: 'forecasting',
+      label: 'Demand Forecasting',
+      icon: Shield,
     },
     {
       id: 'approvals',
@@ -41,6 +51,18 @@ export default function Sidebar({
       badge: pendingCount > 0 ? `${pendingCount}` : null,
       badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
       adminOnly: true,
+    },
+    {
+      id: 'alerts',
+      label: 'Alerts & Governance',
+      icon: AlertTriangle,
+      badge: atRiskCount > 0 ? `${atRiskCount}` : null,
+      badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
+    },
+    {
+      id: 'reports',
+      label: 'Reports & Exports',
+      icon: Layers,
     },
     {
       id: 'settings',

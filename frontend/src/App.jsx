@@ -4,6 +4,10 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import QuotaExplorer from './pages/QuotaExplorer';
 import ApprovalCenter from './pages/ApprovalCenter';
+import Analytics from './pages/Analytics';
+import Forecasting from './pages/Forecasting';
+import Alerts from './pages/Alerts';
+import Reports from './pages/Reports';
 import RequestModal from './components/RequestModal';
 import { api, setClientUserRole } from './api/client';
 
@@ -126,6 +130,20 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'analytics' && (
+          <Analytics quotas={quotas} />
+        )}
+
+        {activeTab === 'forecasting' && (
+          <Forecasting
+            quotas={quotas}
+            onRequestIncrease={(item) => {
+              setSelectedQuotaForModal(item);
+              setIsModalOpen(true);
+            }}
+          />
+        )}
+
         {activeTab === 'approvals' && (
           <ApprovalCenter
             requests={requests}
@@ -136,6 +154,14 @@ export default function App() {
               );
             }}
           />
+        )}
+
+        {activeTab === 'alerts' && (
+          <Alerts quotas={quotas} />
+        )}
+
+        {activeTab === 'reports' && (
+          <Reports quotas={quotas} />
         )}
 
         {activeTab === 'settings' && (
