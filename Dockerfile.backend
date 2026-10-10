@@ -1,0 +1,60 @@
+# ==============================================================================
+# Dockerfile.backend - Multi-stage Production Container Build
+# Quota Management and Increase Request Planning Control Plane
+# ==============================================================================
+
+# Stage 1: Dependency & Build Stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install native dependencies required for build
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Copy package descriptors
+COPY backend/package*.json ./
+
+# Install all dependencies
+RUN npm ci --ignore-scripts || npm install
+
+# Copy application source code
+COPY backend/ ./
+
+# Generate Prisma Client if schema exists
+RUN if [ -f "./prisma/schema.prisma" ]; then npx prisma generate || true; fi
+
+# Prune devDependencies for production image
+RUN npm prune --production
+
+# ==============================================================================
+# Stage 2: Production Lightweight Runtime Image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=5000
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Security: Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs
+
+# Copy pruned production dependencies and source from builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nodejs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+
+USER nodejs
+
+EXPOSE 5000
+
+# Container Healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:5000/api/v1/health || exit 1
+
+CMD ["node", "src/index.js"]

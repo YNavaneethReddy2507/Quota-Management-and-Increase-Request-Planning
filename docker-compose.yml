@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # MySQL 8.0 Database Service
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: gcp_quota_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_master_password
+      MYSQL_DATABASE: quota_management
+      MYSQL_USER: quota_user
+      MYSQL_PASSWORD: quota_secure_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Auto-run initial SQL schema on first container initialization
+      - ./backend/prisma/migrations/0_init/migration.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "quota_user", "-pquota_secure_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - quota_network
+
+  # ============================================================================
+  # Node.js Express Backend API Gateway & Engine
+  # ============================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: gcp_quota_backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: quota_user
+      DB_PASSWORD: quota_secure_password
+      DB_NAME: quota_management
+      DATABASE_URL: "mysql://quota_user:quota_secure_password@mysql:3306/quota_management"
+      GCP_PROJECT_ID: "enterprise-prod-finance-42"
+      WEBHOOK_URL: "https://example.com/api/webhook-placeholder"
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - quota_network
+
+  # ============================================================================
+  # Vite React Frontend Control Plane
+  # ============================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: gcp_quota_frontend
+    restart: always
+    environment:
+      VITE_API_BASE_URL: "http://localhost:5000/api/v1"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - quota_network
+
+# ==============================================================================
+# Persistent Volumes & Networks
+# ==============================================================================
+volumes:
+  mysql_data:
+    name: gcp_quota_mysql_data
+
+networks:
+  quota_network:
+    name: gcp_quota_mesh_network
+    driver: bridge
