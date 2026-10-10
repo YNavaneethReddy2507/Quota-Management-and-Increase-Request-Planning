@@ -63,6 +63,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 10: Usage Metrics Integration
+- **Objective:** Integrate relevant Cloud Monitoring metrics where available. Normalize units, associate metrics with quota resources, and handle missing/delayed telemetry.
+- **Implementation:** Implemented `MonitoringService` with MQL query formulation (`consumer_quota`), time-series ingestion, and database synchronization for recalculating utilization saturation percentages.
+- **Validation:** Created and ran `tests/monitoring_service.test.js` (27/27 tests passing across full test suite).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
