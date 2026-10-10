@@ -98,6 +98,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 15: Forecasting Engine
+- **Objective:** Implement baseline forecasting, estimate future demand and threshold crossing dates, and provide uncertainty and data sufficiency indicators.
+- **Implementation:** Created `ForecastingService` evaluating linear velocity projections, calculating exact business days to 80% threshold breach and 100% capacity exhaustion, and exposed via `GET /api/v1/quotas/:id/forecast`. Updated `Forecasting.jsx` UI view.
+- **Validation:** Created and ran `tests/forecasting.test.js` (33/33 tests passing across full test suite).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 

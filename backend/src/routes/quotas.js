@@ -172,6 +172,50 @@ router.get('/:id/trends', async (req, res) => {
   }
 });
 
+// GET /api/v1/quotas/:id/forecast
+const ForecastingService = require('../services/forecasting_service');
+router.get('/:id/forecast', async (req, res) => {
+
+  try {
+    const quota = await db.quota_metrics.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!quota) {
+      return res.status(404).json({
+        success: false,
+        error: 'Quota metric not found',
+      });
+    }
+
+    const { horizon_days = '30', daily_burn_rate } = req.query;
+    const horizon = Math.max(1, Math.min(180, parseInt(horizon_days, 10) || 30));
+    const burnRate = daily_burn_rate !== undefined ? parseFloat(daily_burn_rate) : null;
+
+    const forecast = ForecastingService.forecastDemand({
+      currentUsage: quota.current_usage,
+      quotaLimit: quota.quota_limit,
+      dailyBurnRate: burnRate,
+      horizonDays: horizon,
+    });
+
+    return res.status(200).json({
+      success: true,
+      quota_metric_id: quota.id,
+      metric_name: quota.metric_name,
+      region: quota.region,
+      data: forecast,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate demand forecast',
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
+
 
 
