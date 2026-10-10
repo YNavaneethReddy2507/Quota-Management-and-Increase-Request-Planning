@@ -1,0 +1,58 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id             String         @id @default(uuid()) @db.VarChar(36)
+  gcp_project_id String         @unique @db.VarChar(255)
+  environment    String         @db.VarChar(50)
+  created_at     DateTime       @default(now()) @db.Timestamp(0)
+  quota_metrics  QuotaMetric[]
+
+  @@map("projects")
+}
+
+model QuotaMetric {
+  id                     String            @id @default(uuid()) @db.VarChar(36)
+  project_id             String            @db.VarChar(36)
+  metric_name            String            @db.VarChar(255)
+  region                 String            @db.VarChar(100)
+  current_usage          Float             @db.Float
+  quota_limit            Float             @db.Float
+  utilization_percentage Float             @db.Float
+  last_synced_at         DateTime          @default(now()) @updatedAt @db.Timestamp(0)
+  project                Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  increase_requests      IncreaseRequest[]
+
+  @@map("quota_metrics")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  GCP_SUBMITTED
+  GCP_FULFILLED
+  FAILED
+}
+
+model IncreaseRequest {
+  id                     String        @id @default(uuid()) @db.VarChar(36)
+  quota_metric_id        String        @db.VarChar(36)
+  requested_by           String        @db.VarChar(255)
+  current_limit          Float         @db.Float
+  requested_limit        Float         @db.Float
+  business_justification String        @db.Text
+  status                 RequestStatus @default(PENDING)
+  admin_comments         String?       @db.Text
+  created_at             DateTime      @default(now()) @db.Timestamp(0)
+  updated_at             DateTime      @default(now()) @updatedAt @db.Timestamp(0)
+  quota_metric           QuotaMetric   @relation(fields: [quota_metric_id], references: [id], onDelete: Cascade)
+
+  @@map("increase_requests")
+}
