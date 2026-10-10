@@ -3,6 +3,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import QuotaExplorer from './pages/QuotaExplorer';
+import ApprovalCenter from './pages/ApprovalCenter';
 import RequestModal from './components/RequestModal';
 
 export default function App() {
@@ -80,6 +81,18 @@ export default function App() {
             onRequestIncrease={(item) => {
               setSelectedQuotaForModal(item);
               setIsModalOpen(true);
+            }}
+          />
+        )}
+
+        {activeTab === 'approvals' && (
+          <ApprovalCenter
+            requests={requests}
+            userRole={userRole}
+            onRequestUpdated={(updatedReq) => {
+              setRequests((prev) =>
+                prev.map((r) => (r.id === updatedReq.id ? updatedReq : r))
+              );
             }}
           />
         )}
