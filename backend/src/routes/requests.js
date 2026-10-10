@@ -217,8 +217,10 @@ router.patch('/:id/approve', async (req, res) => {
 
     console.log(`[STATE MACHINE] Request ${id} transitioned from PENDING -> APPROVED`);
 
-    // Phase 17: Outbound GCP Quota API Submission
+    // Phase 17 & 18: Outbound GCP Quota API Submission with Exponential Backoff
     const GcpQuotaSubmissionService = require('../services/gcp_quota_submission_service');
+    const { executeWithExponentialBackoff } = require('../utils/retry_handler');
+
     const quota = await db.quota_metrics.findUnique({ where: { id: request.quota_metric_id } });
     const project = quota ? await db.projects.findUnique({ where: { id: quota.project_id } }) : null;
     const gcpProjectId = project ? project.gcp_project_id : 'demo-gcp-project';
@@ -231,29 +233,50 @@ router.patch('/:id/approve', async (req, res) => {
         data: { status: 'GCP_SUBMITTED' },
       });
 
-      gcpSubmissionResult = await GcpQuotaSubmissionService.submitQuotaPreference({
-        gcpProjectId,
-        region: quota ? quota.region : 'us-central1',
-        metricName: quota ? quota.metric_name : 'compute.googleapis.com/cpus',
-        requestedLimit: request.requested_limit,
-        justification: request.business_justification,
-        requesterEmail: request.requested_by,
-      });
+      // Wrap in exponential backoff retry mechanism (Phase 18)
+      gcpSubmissionResult = await executeWithExponentialBackoff(
+        async () => {
+          return await GcpQuotaSubmissionService.submitQuotaPreference({
+            gcpProjectId,
+            region: quota ? quota.region : 'us-central1',
+            metricName: quota ? quota.metric_name : 'compute.googleapis.com/cpus',
+            requestedLimit: request.requested_limit,
+            justification: request.business_justification,
+            requesterEmail: request.requested_by,
+          });
+        },
+        {
+          maxRetries: 3,
+          initialDelayMs: 300,
+          operationName: `GCP Quota Submit for ${id}`,
+        }
+      );
 
-      // Update to fulfilled
+      // On successful submission, update MySQL status to GCP_FULFILLED
       updated = await db.increase_requests.update({
         where: { id },
         data: { status: 'GCP_FULFILLED' },
       });
+      console.log(`[STATE MACHINE] Request ${id} transitioned to GCP_FULFILLED.`);
     } catch (gcpErr) {
-      console.warn(`[GCP SUBMISSION NOTICE] Live call error: ${gcpErr.message}. Marked as GCP_SUBMITTED.`);
-      // If live credentials are non-production/demo, remain at GCP_SUBMITTED or simulate fulfillment
-      updated = await db.increase_requests.findUnique({ where: { id } });
+      // If all retries fail, update MySQL status to FAILED and log error trace
+      console.error(
+        `[GCP RETRY EXHAUSTION] Quota increase submission failed after retries for request ${id}: ${gcpErr.message}`,
+        gcpErr.stack
+      );
+
+      updated = await db.increase_requests.update({
+        where: { id },
+        data: {
+          status: 'FAILED',
+          admin_comments: `Submission to GCP failed: ${gcpErr.message}`,
+        },
+      });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Quota increase request approved and submitted to Google Cloud Quotas API',
+      message: `Quota increase request processed. Final status: ${updated.status}`,
       data: updated,
       gcp_submission: gcpSubmissionResult,
     });
