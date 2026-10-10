@@ -165,4 +165,134 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Rejection validation schema
+const rejectRequestSchema = z.object({
+  admin_comments: z.string().min(5, 'admin_comments is required and must be at least 5 characters'),
+});
+
+// Approval optional comments schema
+const approveRequestSchema = z.object({
+  admin_comments: z.string().optional(),
+});
+
+// PATCH /api/v1/requests/:id/approve - Approve Request
+router.patch('/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const validation = approveRequestSchema.safeParse(req.body || {});
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation Error',
+        details: validation.error.errors,
+      });
+    }
+
+    const request = await db.increase_requests.findUnique({ where: { id } });
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found',
+      });
+    }
+
+    // Strict State Machine: Database status MUST be PENDING to proceed
+    if (request.status !== 'PENDING') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid State Transition',
+        message: `Cannot approve request with current status '${request.status}'. Only requests in 'PENDING' status can be approved.`,
+        currentStatus: request.status,
+      });
+    }
+
+    // Update MySQL status to APPROVED
+    const updated = await db.increase_requests.update({
+      where: { id },
+      data: {
+        status: 'APPROVED',
+        admin_comments: validation.data.admin_comments || 'Approved by Cloud Administrator',
+      },
+    });
+
+    console.log(`[STATE MACHINE] Request ${id} transitioned from PENDING -> APPROVED`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Quota increase request approved successfully',
+      data: updated,
+    });
+  } catch (error) {
+    console.error('[APPROVE REQUEST ERROR]', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to approve request',
+      message: error.message,
+    });
+  }
+});
+
+// PATCH /api/v1/requests/:id/reject - Reject Request
+router.patch('/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Reject requires admin_comments
+    const validation = rejectRequestSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation Error',
+        message: 'A rejection reason (admin_comments) is mandatory when rejecting a quota request.',
+        details: validation.error.errors.map((e) => ({
+          field: e.path.join('.'),
+          message: e.message,
+        })),
+      });
+    }
+
+    const request = await db.increase_requests.findUnique({ where: { id } });
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found',
+      });
+    }
+
+    // Strict State Machine: Database status MUST be PENDING to proceed
+    if (request.status !== 'PENDING') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid State Transition',
+        message: `Cannot reject request with current status '${request.status}'. Only requests in 'PENDING' status can be rejected.`,
+        currentStatus: request.status,
+      });
+    }
+
+    // Update MySQL status to REJECTED with mandatory admin comments
+    const updated = await db.increase_requests.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        admin_comments: validation.data.admin_comments,
+      },
+    });
+
+    console.log(`[STATE MACHINE] Request ${id} transitioned from PENDING -> REJECTED. Reason: "${validation.data.admin_comments}"`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Quota increase request rejected',
+      data: updated,
+    });
+  } catch (error) {
+    console.error('[REJECT REQUEST ERROR]', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to reject request',
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
