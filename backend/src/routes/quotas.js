@@ -69,6 +69,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/v1/quotas/sync
+const QuotaService = require('../services/quota_service');
+router.post('/sync', async (req, res) => {
+  try {
+    const { gcp_project_id = 'enterprise-prod-finance-42', region = 'us-central1' } = req.body;
+    const result = await QuotaService.syncQuotaLimits(gcp_project_id, region);
+    return res.status(200).json({
+      success: true,
+      message: `Quota sync completed successfully for ${gcp_project_id} (${region})`,
+      data: result,
+    });
+  } catch (error) {
+    console.error('[QUOTA SYNC ERROR]', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to synchronize quota limits with Google Cloud Quotas API',
+      message: error.message,
+    });
+  }
+});
+
 // GET /api/v1/quotas/:id
 router.get('/:id', async (req, res) => {
   try {
@@ -97,3 +118,4 @@ router.get('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
