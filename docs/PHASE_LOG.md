@@ -77,6 +77,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 12: Quota Inventory and Search
+- **Objective:** Implement searchable, sortable, filterable quota tables and quota detail views displaying limits, utilization, regions, and action controls.
+- **Implementation:** Developed `QuotaExplorer.jsx` and enterprise `DataTable.jsx` supporting full-text search across metric identifiers and regions, multi-tier risk filtering (`NORMAL`, `MODERATE`, `HIGH`), multi-column sorting, and responsive pagination.
+- **Validation:** Verified via `npm run build` in `frontend/`.
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
