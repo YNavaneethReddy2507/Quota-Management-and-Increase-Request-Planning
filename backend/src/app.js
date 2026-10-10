@@ -56,8 +56,10 @@ app.get('/api/v1/health', (req, res) => {
 // Mount REST API Routers
 const projectsRouter = require('./routes/projects');
 const quotasRouter = require('./routes/quotas');
+const requestsRouter = require('./routes/requests');
 
 app.use('/api/v1/projects', projectsRouter);
 app.use('/api/v1/quotas', quotasRouter);
+app.use('/api/v1/requests', requestsRouter);
 
 module.exports = app;
