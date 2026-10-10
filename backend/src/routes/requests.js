@@ -118,7 +118,17 @@ router.post('/', async (req, res) => {
       req.headers['x-user-email'] ||
       'cloud-engineer@enterprise.org';
 
-    // 4. Save record to MySQL with status PENDING
+    // 4. Calculate Risk Assessment & Approval Confidence Score (Phase 15)
+    const RiskAssessmentService = require('../services/risk_assessment_service');
+    const riskAssessment = RiskAssessmentService.calculateApprovalConfidenceScore({
+      currentUsage: quota.current_usage,
+      currentLimit,
+      requestedLimit: requested_limit,
+      utilizationPercentage: quota.utilization_percentage,
+      justification: business_justification,
+    });
+
+    // 5. Save record to MySQL with status PENDING
     const newRequest = await db.increase_requests.create({
       data: {
         quota_metric_id,
@@ -133,13 +143,17 @@ router.post('/', async (req, res) => {
 
     console.log(
       `[REQUEST DRAFTED] Created request ${newRequest.id} for metric ${quota_metric_id}. ` +
-      `Current: ${currentLimit} -> Requested: ${requested_limit}. Requester: ${requester}`
+      `Score: ${riskAssessment.score} (${riskAssessment.category}). Current: ${currentLimit} -> Requested: ${requested_limit}. Requester: ${requester}`
     );
 
     return res.status(201).json({
       success: true,
       message: 'Quota increase request drafted successfully',
-      data: newRequest,
+      data: {
+        ...newRequest,
+        approval_confidence_score: riskAssessment.score,
+        risk_assessment: riskAssessment,
+      },
     });
   } catch (error) {
     console.error('[REQUEST CREATION ERROR]', error);
