@@ -1,0 +1,23 @@
+{
+  "name": "gcp-quota-management-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Google Cloud Quota Management and Increase Request Planning",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest --runInBand",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
+  },
+  "keywords": [
+    "gcp",
+    "quota-management",
+    "cloud-quotas",
+    "governance",
+    "hackathon"
+  ],
+  "author": "Antigravity Cloud Team",
+  "license": "MIT"
+}

@@ -1,0 +1,14 @@
+# Backend specific ignores
+node_modules/
+dist/
+coverage/
+.env
+*.env
+!*.env.example
+*.log
+*.sqlite
+*.db
+prisma/*.db
+prisma/*.db-journal
+credentials.json
+service-account-key.json

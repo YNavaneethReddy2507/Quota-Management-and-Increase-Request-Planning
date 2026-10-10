@@ -1,0 +1,21 @@
+{
+  "name": "gcp-quota-management-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Frontend Control Plane for Google Cloud Quota Management and Increase Request Planning",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "react",
+    "vite",
+    "gcp",
+    "cloud-governance",
+    "quota-management"
+  ],
+  "author": "Antigravity Cloud Team",
+  "license": "MIT"
+}
