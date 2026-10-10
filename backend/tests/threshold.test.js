@@ -52,5 +52,15 @@ describe('Threshold & Utilization Calculation Logic', () => {
       expect(ThresholdService.getRiskLevel(70.0)).toBe('MODERATE');
       expect(ThresholdService.getRiskLevel(45.0)).toBe('NORMAL');
     });
+
+    test('boundary and invalid-data handling: classifies null, undefined, or NaN as UNKNOWN', () => {
+      expect(ThresholdService.getRiskLevel(null)).toBe('UNKNOWN');
+      expect(ThresholdService.getRiskLevel(undefined)).toBe('UNKNOWN');
+      expect(ThresholdService.getRiskLevel(NaN)).toBe('UNKNOWN');
+      expect(ThresholdService.isHighRisk(null)).toBe(false);
+      expect(ThresholdService.isHighRisk(undefined)).toBe(false);
+      expect(ThresholdService.isHighRisk(NaN)).toBe(false);
+    });
   });
 });
+

@@ -29,12 +29,15 @@ class ThresholdService {
   }
 
   /**
-   * Evaluates the risk category for a given utilization percentage.
+   * Evaluates the risk category for a given utilization percentage or raw values.
    *
-   * @param {number} utilizationPercentage
-   * @returns {'CRITICAL' | 'HIGH' | 'MODERATE' | 'NORMAL'}
+   * @param {number|null|undefined} utilizationPercentage
+   * @returns {'CRITICAL' | 'HIGH' | 'MODERATE' | 'NORMAL' | 'UNKNOWN'}
    */
   static getRiskLevel(utilizationPercentage) {
+    if (utilizationPercentage === null || utilizationPercentage === undefined || isNaN(utilizationPercentage)) {
+      return 'UNKNOWN';
+    }
     if (utilizationPercentage >= 90.0) return 'CRITICAL';
     if (utilizationPercentage >= config.thresholds.highRiskPercent) return 'HIGH';
     if (utilizationPercentage >= config.thresholds.moderateRiskPercent) return 'MODERATE';
@@ -44,12 +47,16 @@ class ThresholdService {
   /**
    * Checks whether a utilization percentage is flagged as high risk (>= 80%).
    *
-   * @param {number} utilizationPercentage
+   * @param {number|null|undefined} utilizationPercentage
    * @returns {boolean}
    */
   static isHighRisk(utilizationPercentage) {
+    if (utilizationPercentage === null || utilizationPercentage === undefined || isNaN(utilizationPercentage)) {
+      return false;
+    }
     return utilizationPercentage >= config.thresholds.highRiskPercent;
   }
+
 
   /**
    * Recalculates utilization percentages for all metrics in the database,
