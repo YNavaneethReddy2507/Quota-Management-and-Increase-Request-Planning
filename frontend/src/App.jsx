@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import QuotaExplorer from './pages/QuotaExplorer';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -65,6 +66,15 @@ export default function App() {
             onNavigateToApprovals={() => setActiveTab('approvals')}
             onRequestIncrease={(item) => {
               setActiveTab('quotas');
+            }}
+          />
+        )}
+
+        {activeTab === 'quotas' && (
+          <QuotaExplorer
+            quotas={quotas}
+            onRequestIncrease={(item) => {
+              // Open modal
             }}
           />
         )}
