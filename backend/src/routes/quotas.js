@@ -215,7 +215,51 @@ router.get('/:id/forecast', async (req, res) => {
   }
 });
 
+// GET /api/v1/quotas/:id/recommendation
+
+const RecommendationService = require('../services/recommendation_service');
+router.get('/:id/recommendation', async (req, res) => {
+  try {
+    const quota = await db.quota_metrics.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!quota) {
+      return res.status(404).json({
+        success: false,
+        error: 'Quota metric not found',
+      });
+    }
+
+    const { safety_margin_pct = '25', growth_units = '0' } = req.query;
+    const safetyMargin = Math.max(5, Math.min(100, parseFloat(safety_margin_pct) || 25));
+    const growth = Math.max(0, parseFloat(growth_units) || 0);
+
+    const recommendation = RecommendationService.generateRecommendation({
+      currentLimit: quota.quota_limit,
+      currentUsage: quota.current_usage,
+      safetyMarginPct: safetyMargin,
+      projectedGrowthUnits: growth,
+    });
+
+    return res.status(200).json({
+      success: true,
+      quota_metric_id: quota.id,
+      metric_name: quota.metric_name,
+      region: quota.region,
+      data: recommendation,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate recommendation',
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
+
 
 
 

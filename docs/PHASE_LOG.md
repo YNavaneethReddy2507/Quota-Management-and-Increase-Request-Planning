@@ -105,6 +105,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 16: Recommendation Engine
+- **Objective:** Combine valid quota limits, current usage, forecast demand, workload plans, and configurable safety margins to recommend target limits with explainable justification factors.
+- **Implementation:** Authored `RecommendationService` calculating mathematically sound capacity limits, additional headroom buffers, explainable confidence scoring, and explicit advisory disclaimers. Exposed via `GET /api/v1/quotas/:id/recommendation`.
+- **Validation:** Created and executed `tests/recommendation.test.js` (36/36 tests passing across full test suite).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
