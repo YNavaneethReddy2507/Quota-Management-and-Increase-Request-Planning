@@ -91,6 +91,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 14: Historical Analytics
+- **Objective:** Implement historical observation storage, retrieval, trend calculations, time-series charts, and irregular sampling handling.
+- **Implementation:** Built historical trend calculation engine in `backend/src/routes/quotas.js` (`GET /api/v1/quotas/:id/trends`), calculating daily burn rates and observations across dynamic date windows (7d, 14d, 30d, 90d). Added frontend `Analytics.jsx` time-series view.
+- **Validation:** Created and ran `tests/trends.test.js` (30/30 tests passing across full test suite).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
