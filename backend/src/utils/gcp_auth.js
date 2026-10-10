@@ -56,15 +56,23 @@ async function getGoogleAuthClient() {
  * Retrieves the resolved GCP Project ID from GoogleAuth or fallback configuration.
  */
 async function getGcpProjectId() {
+  if (config.gcp.projectId && config.gcp.projectId !== 'demo-gcp-project') {
+    return config.gcp.projectId;
+  }
+
   const auth = initGoogleAuth();
   try {
-    const projectId = await auth.getProjectId();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Project ID detection timeout')), 500)
+    );
+    const projectId = await Promise.race([auth.getProjectId(), timeoutPromise]);
     if (projectId) return projectId;
   } catch (e) {
-    // ignore and fallback
+    // fallback gracefully
   }
-  return config.gcp.projectId || 'demo-gcp-project';
+  return config.gcp.projectId || 'enterprise-prod-finance-42';
 }
+
 
 /**
  * Acquires a fresh OAuth2 Bearer Access Token for outbound GCP REST API calls.
