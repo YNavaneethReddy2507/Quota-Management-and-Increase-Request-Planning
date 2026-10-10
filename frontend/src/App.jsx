@@ -3,6 +3,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import QuotaExplorer from './pages/QuotaExplorer';
+import RequestModal from './components/RequestModal';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -10,6 +11,8 @@ export default function App() {
   const [environment, setEnvironment] = useState('PRODUCTION');
   const [selectedProject, setSelectedProject] = useState('enterprise-prod-finance-42');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedQuotaForModal, setSelectedQuotaForModal] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock baseline data until centralized API client connects
   const [quotas, setQuotas] = useState([
@@ -65,7 +68,8 @@ export default function App() {
             onNavigateToQuotas={() => setActiveTab('quotas')}
             onNavigateToApprovals={() => setActiveTab('approvals')}
             onRequestIncrease={(item) => {
-              setActiveTab('quotas');
+              setSelectedQuotaForModal(item);
+              setIsModalOpen(true);
             }}
           />
         )}
@@ -74,10 +78,22 @@ export default function App() {
           <QuotaExplorer
             quotas={quotas}
             onRequestIncrease={(item) => {
-              // Open modal
+              setSelectedQuotaForModal(item);
+              setIsModalOpen(true);
             }}
           />
         )}
+
+        {/* Request Planner Modal (Phase 24) */}
+        <RequestModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          quota={selectedQuotaForModal}
+          userRole={userRole}
+          onSubmitSuccess={(newReq) => {
+            setRequests((prev) => [newReq, ...prev]);
+          }}
+        />
       </Layout>
     </>
   );
