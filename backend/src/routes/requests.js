@@ -146,6 +146,19 @@ router.post('/', async (req, res) => {
       `Score: ${riskAssessment.score} (${riskAssessment.category}). Current: ${currentLimit} -> Requested: ${requested_limit}. Requester: ${requester}`
     );
 
+    // Phase 19: Notification Webhook Trigger on Draft
+    const NotificationService = require('../services/notification_service');
+    NotificationService.sendNotification(
+      `New Quota Increase Request drafted for metric '${quota.metric_name}' (${quota.region}): requested ${requested_limit} (current ${currentLimit}) by ${requester}. Confidence Score: ${riskAssessment.score}/100.`,
+      {
+        requestId: newRequest.id,
+        metricName: quota.metric_name,
+        requestedLimit: requested_limit,
+        status: 'PENDING',
+        requestedBy: requester,
+      }
+    ).catch((err) => console.warn('[NOTIFICATION HOOK ERROR]', err.message));
+
     return res.status(201).json({
       success: true,
       message: 'Quota increase request drafted successfully',
@@ -274,6 +287,17 @@ router.patch('/:id/approve', async (req, res) => {
       });
     }
 
+    // Trigger Notification Webhook on Approve
+    const NotificationService = require('../services/notification_service');
+    NotificationService.sendNotification(
+      `Quota Increase Request ${id} APPROVED by administrator. GCP Status: ${updated.status}. Limit: ${request.requested_limit}.`,
+      {
+        requestId: id,
+        status: updated.status,
+        requestedLimit: request.requested_limit,
+      }
+    ).catch((err) => console.warn('[NOTIFICATION HOOK ERROR]', err.message));
+
     return res.status(200).json({
       success: true,
       message: `Quota increase request processed. Final status: ${updated.status}`,
@@ -337,6 +361,17 @@ router.patch('/:id/reject', async (req, res) => {
     });
 
     console.log(`[STATE MACHINE] Request ${id} transitioned from PENDING -> REJECTED. Reason: "${validation.data.admin_comments}"`);
+
+    // Trigger Notification Webhook on Reject
+    const NotificationService = require('../services/notification_service');
+    NotificationService.sendNotification(
+      `Quota Increase Request ${id} REJECTED by administrator. Reason: "${validation.data.admin_comments}".`,
+      {
+        requestId: id,
+        status: 'REJECTED',
+        adminComments: validation.data.admin_comments,
+      }
+    ).catch((err) => console.warn('[NOTIFICATION HOOK ERROR]', err.message));
 
     return res.status(200).json({
       success: true,
