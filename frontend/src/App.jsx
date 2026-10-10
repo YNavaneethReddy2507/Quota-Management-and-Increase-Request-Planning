@@ -1,22 +1,39 @@
 import React, { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import Layout from './components/Layout';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [userRole, setUserRole] = useState('Admin');
+  const [environment, setEnvironment] = useState('PRODUCTION');
+  const [selectedProject, setSelectedProject] = useState('enterprise-prod-finance-42');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Toaster position="top-right" />
-      <header className="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>
-          Google Cloud Quota Control Plane
-        </h1>
-        <div className="text-xs text-slate-400">Environment: PRODUCTION</div>
-      </header>
-      <main className="flex-1 p-6">
-        <p className="text-slate-400">Initializing Control Plane modules...</p>
-      </main>
-    </div>
+    <>
+      <Toaster position="top-right" toastOptions={{ style: { background: '#0f172a', color: '#f8fafc', border: '1px solid #334155' } }} />
+      <Layout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userRole={userRole}
+        setUserRole={setUserRole}
+        environment={environment}
+        setEnvironment={setEnvironment}
+        selectedProject={selectedProject}
+        setSelectedProject={setSelectedProject}
+        onRefreshTelemetry={handleRefresh}
+        isRefreshing={isRefreshing}
+      >
+        <div className="glass-panel p-6 rounded-xl">
+          <h2 className="text-lg font-semibold text-white mb-2">Google Cloud Quota Control Plane Active</h2>
+          <p className="text-slate-400 text-sm">Layout Architecture initialized successfully. Proceeding to page components.</p>
+        </div>
+      </Layout>
+    </>
   );
 }
