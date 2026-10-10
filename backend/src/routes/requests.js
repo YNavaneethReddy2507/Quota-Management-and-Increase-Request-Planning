@@ -178,6 +178,9 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Import RBAC Middleware (Phase 27)
+const { requireRole } = require('../middleware/rbac');
+
 // Rejection validation schema
 const rejectRequestSchema = z.object({
   admin_comments: z.string().min(5, 'admin_comments is required and must be at least 5 characters'),
@@ -188,8 +191,8 @@ const approveRequestSchema = z.object({
   admin_comments: z.string().optional(),
 });
 
-// PATCH /api/v1/requests/:id/approve - Approve Request
-router.patch('/:id/approve', async (req, res) => {
+// PATCH /api/v1/requests/:id/approve - Approve Request (Protected: Admin Only)
+router.patch('/:id/approve', requireRole(['Admin']), async (req, res) => {
   try {
     const { id } = req.params;
     const validation = approveRequestSchema.safeParse(req.body || {});
@@ -314,8 +317,8 @@ router.patch('/:id/approve', async (req, res) => {
   }
 });
 
-// PATCH /api/v1/requests/:id/reject - Reject Request
-router.patch('/:id/reject', async (req, res) => {
+// PATCH /api/v1/requests/:id/reject - Reject Request (Protected: Admin Only)
+router.patch('/:id/reject', requireRole(['Admin']), async (req, res) => {
   try {
     const { id } = req.params;
 
