@@ -6,11 +6,12 @@
 
 const express = require('express');
 const { db } = require('../db');
+const { quotaCache } = require('../utils/cache');
 
 const router = express.Router();
 
-// GET /api/v1/quotas
-router.get('/', async (req, res) => {
+// GET /api/v1/quotas (with 60-second response caching)
+router.get('/', quotaCache.middleware(60), async (req, res) => {
   try {
     const {
       project_id,

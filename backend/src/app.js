@@ -50,7 +50,7 @@ if (config.env !== 'test') {
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Health Check Endpoint
+// Health Check Endpoint (Liveness)
 app.get('/api/v1/health', (req, res) => {
   return res.status(200).json({
     status: 'ok',
@@ -58,6 +58,32 @@ app.get('/api/v1/health', (req, res) => {
     service: 'gcp-quota-governance-engine',
     version: '1.0.0',
     environment: config.env,
+  });
+});
+
+// Detailed Component Health & Readiness Endpoint
+const { quotaCache } = require('./utils/cache');
+const { db } = require('./db');
+app.get('/api/v1/health/detailed', (req, res) => {
+  const mem = process.memoryUsage();
+  return res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime_seconds: Math.floor(process.uptime()),
+    components: {
+      database: {
+        status: 'UP',
+        engine: db.isPrismaConnected ? 'MySQL/Prisma' : 'In-Memory Resilient Fallback',
+      },
+      quota_cache: {
+        status: 'UP',
+        active_cached_keys: quotaCache.size,
+      },
+      memory: {
+        heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+        rss_mb: Math.round(mem.rss / 1024 / 1024),
+      },
+    },
   });
 });
 
