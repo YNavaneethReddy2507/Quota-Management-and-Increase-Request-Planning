@@ -162,7 +162,7 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 GCP_DEFAULT_PROJECT_ID=my-gcp-project-id
 
 # Notification Webhooks (Slack or Discord)
-WEBHOOK_URL=https://hooks.slack.com/services/EXAMPLE/WEBHOOK/URL
+WEBHOOK_URL=https://example.com/api/webhook-placeholder
 ```
 
 ### Frontend (`/frontend/.env`)
@@ -178,7 +178,7 @@ VITE_API_BASE_URL=http://localhost:5000/api/v1
 ### Option A: Run via Docker Compose (Recommended)
 Launch the entire stack (MySQL 8.0, Node.js Backend API, and Vite React Frontend) with a single command:
 ```bash
-docker-compose up --build
+docker-compose up -d --build
 ```
 - Frontend will be available at: `http://localhost:3000`
 - Backend REST API will be available at: `http://localhost:5000`
@@ -190,23 +190,16 @@ docker-compose up --build
 ```bash
 cd backend
 npm install
-npm run prisma:generate
-# Seed or migrate DB
-npm run start
+npm test
+npm start
 ```
 
 #### 2. Setup Frontend
 ```bash
 cd frontend
 npm install
+npm run build
 npm run dev
-```
-
-#### 3. Run Concurrently from Root
-You can install and use concurrently:
-```bash
-npm install -g concurrently
-concurrently --kill-others "npm run dev --prefix backend" "npm run dev --prefix frontend"
 ```
 
 ---
@@ -216,14 +209,41 @@ concurrently --kill-others "npm run dev --prefix backend" "npm run dev --prefix 
 | Method | Endpoint | Description | Role / Auth |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/health` | Service health status and timestamp | Public |
+| `GET` | `/api/v1/health/detailed` | Readiness check & component telemetry | Public |
 | `GET` | `/api/v1/projects` | List all tracked GCP projects | Developer, Admin |
-| `GET` | `/api/v1/quotas` | List quota metrics with pagination & threshold filtering | Developer, Admin |
+| `GET` | `/api/v1/quotas` | List quota metrics with 60s TTL response caching | Developer, Admin |
+| `POST` | `/api/v1/quotas/sync` | Trigger manual quota limit & telemetry ingestion | Admin Only |
+| `GET` | `/api/v1/quotas/:id/trends` | Calculate daily burn rate and historical velocity | Developer, Admin |
+| `GET` | `/api/v1/quotas/:id/forecast` | Linear projection and days to exhaustion | Developer, Admin |
+| `GET` | `/api/v1/quotas/:id/recommendation` | Target limit sizing with confidence score | Developer, Admin |
 | `POST` | `/api/v1/requests` | Draft a quota increase request with Risk Scoring | Developer, Admin |
 | `PATCH`| `/api/v1/requests/:id/approve` | Approve request & trigger GCP Cloud Quotas submission | Admin Only |
 | `PATCH`| `/api/v1/requests/:id/reject` | Reject request with mandatory reason | Admin Only |
-| `POST` | `/api/v1/sync` | Trigger manual quota limit & telemetry ingestion | Admin Only |
+| `GET` | `/api/v1/quotas/export/csv` | Download RFC-compliant CSV telemetry report | Developer, Admin |
+| `GET` | `/api/v1/quotas/export/json` | Download complete JSON telemetry payload | Developer, Admin |
+| `GET` | `/api/v1/quotas/export/summary` | Executive governance summary with FinOps insights | Developer, Admin |
+| `GET` | `/api/v1/settings` | Get organization thresholds and webhook channels | Developer, Admin |
+| `PATCH`| `/api/v1/settings` | Update threshold rules and sync frequency | Admin Only |
 
 ---
 
-## 8. License & Acknowledgements
+## 8. Comprehensive Documentation Suite
+
+| Document | Description |
+|---|---|
+| [System Architecture](docs/ARCHITECTURE.md) | High-level component interactions, data flow, and database models |
+| [REST API Specification](docs/API_DOCUMENTATION.md) | Complete OpenAPI / REST API route reference and schemas |
+| [Deployment & CI/CD Operations](docs/DEPLOYMENT.md) | Docker Compose, Google Cloud Run, Cloud Build, and Terraform IaC |
+| [Security & Threat Model](docs/SECURITY.md) | Defense-in-depth, OWASP security headers, rate limiting, and RBAC |
+| [Automated Testing Strategy](docs/TESTING.md) | Test matrix (17 suites / 67 tests), coverage reports, and mocks |
+| [Accessibility Audit](docs/ACCESSIBILITY.md) | WCAG 2.1 AA compliance, skip link, landmarks, and contrast ratios |
+| [Performance & Reliability](docs/PERFORMANCE.md) | Caching TTL, query indexing, exponential backoff, and benchmarks |
+| [End-to-End Verification](docs/VERIFICATION.md) | Full 9-step user journey lifecycle test and validation sign-off |
+| [Implementation Status](docs/IMPLEMENTATION_STATUS.md) | 100% completion across all 30 development phases |
+| [Phase Development Log](docs/PHASE_LOG.md) | Granular audit trail for all 30 phases with commit history |
+| [Known Limitations & Roadmap](docs/KNOWN_LIMITATIONS.md) | Current GCP boundaries and engineering roadmap |
+
+---
+
+## 9. License & Acknowledgements
 Developed for the **Google Cloud Hackathon**. Distributed under the MIT License.
