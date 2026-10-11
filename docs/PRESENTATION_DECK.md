@@ -7,10 +7,10 @@
 ---
 
 ## Team Roster
-- **2400030020** - YADAMAKANTI NAVANEETH REDDY (Lead Cloud Architect & Full-Stack Lead)
-- **2400039056** - SHIVAM KUMAR SAW (Backend & API Integration Specialist)
-- **2400033292** - NIKET KUMAR (DevOps & Cloud Infrastructure Lead)
-- **2400033195** - ALLAM SAHITHI (Frontend UX & Testing Engineer)
+- **2400030020** - YADAMAKANTI NAVANEETH REDDY
+- **2400039056** - SHIVAM KUMAR SAW
+- **2400033292** - NIKET KUMAR
+- **2400033195** - ALLAM SAHITHI
 
 ---
 
@@ -22,11 +22,11 @@
 - **Embedded Graphic:** `slide1_hero.png` (GCP Cloud Quotas Architecture Shield & Services Node Map)
 - **Speaker Script:** "Welcome everyone. Today we present our project, the Google Cloud Quota Management and Increase Request Planning Control Plane, designed to eliminate unplanned cloud outages and streamline capacity governance."
 
-### Slide 2: Core Engineering Team & Responsibilities
-- **Title:** Project Team Roster & Architectural Responsibilities
-- **Content:** Individual contributions across Architecture, Backend APIs, Cloud Infrastructure, and Testing.
-- **Embedded Graphic:** `slide2_team.png` (Team Member Matrix with IDs and Roles)
-- **Speaker Script:** "Our cross-functional team comprises Y. Navaneeth Reddy leading architecture, Shivam Kumar on backend APIs, Niket Kumar managing DevOps, and Allam Sahithi leading UX and automated testing."
+### Slide 2: Project Team Members & Roster
+- **Title:** Engineering Team & Student Roster
+- **Content:** Team members collaborating on the Google Cloud Quota Control Plane project.
+- **Embedded Graphic:** `slide2_team.png` (Team Member Matrix with IDs and Names)
+- **Speaker Script:** "Our project team comprises Yadamakanti Navaneeth Reddy, Shivam Kumar Saw, Niket Kumar, and Allam Sahithi."
 
 ### Slide 3: The Enterprise Problem Statement
 - **Title:** The Enterprise Quota Bottleneck in Google Cloud

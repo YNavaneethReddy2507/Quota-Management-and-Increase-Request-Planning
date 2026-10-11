@@ -56,30 +56,29 @@ def gen_slide1():
 
     save_fig(fig, "slide1_hero.png")
 
-# --- Slide 2: Team Matrix ---
+# --- Slide 2: Team Matrix (No Roles) ---
 def gen_slide2():
     fig, ax = plt.subplots(figsize=(6, 4.5), facecolor='#0F172A')
     ax.set_facecolor('#0F172A')
     ax.axis('off')
 
     members = [
-        ("Y. Navaneeth Reddy", "2400030020", "Lead Cloud Architect & Full-Stack", "#3B82F6"),
-        ("Shivam Kumar Saw", "2400039056", "Backend & API Integration Specialist", "#10B981"),
-        ("Niket Kumar", "2400033292", "DevOps & Cloud Infrastructure Lead", "#F59E0B"),
-        ("Allam Sahithi", "2400033195", "Frontend UX & Testing Engineer", "#EC4899"),
+        ("YADAMAKANTI NAVANEETH REDDY", "2400030020", "#3B82F6"),
+        ("SHIVAM KUMAR SAW", "2400039056", "#10B981"),
+        ("NIKET KUMAR", "2400033292", "#F59E0B"),
+        ("ALLAM SAHITHI", "2400033195", "#EC4899"),
     ]
 
-    for idx, (name, reg, role, col) in enumerate(members):
+    for idx, (name, reg, col) in enumerate(members):
         y = 0.82 - idx * 0.22
         box = patches.FancyBboxPatch((0.05, y-0.08), 0.9, 0.17, boxstyle="round,pad=0.03", fc='#1E293B', ec=col, lw=2)
         ax.add_patch(box)
-        badge = patches.Circle((0.13, y), 0.05, color=col)
+        badge = patches.Circle((0.14, y), 0.055, color=col)
         ax.add_patch(badge)
-        ax.text(0.13, y, f"0{idx+1}", fontsize=10, fontweight='bold', color='#0F172A', ha='center', va='center')
+        ax.text(0.14, y, f"0{idx+1}", fontsize=11, fontweight='bold', color='#0F172A', ha='center', va='center')
 
-        ax.text(0.22, y+0.03, name, fontsize=11, fontweight='bold', color='#F8FAFC', va='center')
-        ax.text(0.68, y+0.03, f"ID: {reg}", fontsize=9, fontfamily='monospace', color=col, va='center', fontweight='bold')
-        ax.text(0.22, y-0.03, f"Role: {role}", fontsize=8.5, color='#94A3B8', va='center')
+        ax.text(0.24, y+0.02, name, fontsize=10.5, fontweight='bold', color='#F8FAFC', va='center')
+        ax.text(0.24, y-0.035, f"Student ID: {reg}", fontsize=9.5, fontfamily='monospace', color=col, va='center', fontweight='bold')
 
     save_fig(fig, "slide2_team.png")
 

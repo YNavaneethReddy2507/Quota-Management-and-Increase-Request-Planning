@@ -1,13 +1,15 @@
 """
 Generate an enterprise-grade 17-slide widescreen PowerPoint presentation (.pptx)
 for the Quota Management and Increase Request Planning Control Plane.
+Strictly ensures:
+1. NO assigned roles for team members.
+2. Text never exceeds the bounding box of any textbox.
 """
 
 import os
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
 from pptx.enum.shapes import MSO_SHAPE
 
 OUTPUT_PPTX = "Quota_Management_and_Increase_Request_Planning_Presentation.pptx"
@@ -30,7 +32,6 @@ prs.slide_height = Inches(7.5)
 blank_layout = prs.slide_layouts[6]
 
 def set_slide_background(slide):
-    # Background rectangle
     bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.333), Inches(7.5))
     bg.fill.solid()
     bg.fill.fore_color.rgb = BG_COLOR
@@ -39,45 +40,45 @@ def set_slide_background(slide):
 
 def add_header(slide, tag_text, title_text, subtitle_text=""):
     # Tag Pill
-    tag_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.5), Inches(5), Inches(0.4))
+    tag_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.45), Inches(6.0), Inches(0.35))
     tf_tag = tag_box.text_frame
     tf_tag.word_wrap = True
     p_tag = tf_tag.paragraphs[0]
     p_tag.text = tag_text.upper()
-    p_tag.font.size = Pt(10)
+    p_tag.font.size = Pt(9.5)
     p_tag.font.bold = True
     p_tag.font.color.rgb = ACCENT_CYAN
 
     # Title
-    title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.85), Inches(11.5), Inches(0.8))
+    title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.75), Inches(11.5), Inches(0.65))
     tf_title = title_box.text_frame
     tf_title.word_wrap = True
     p_title = tf_title.paragraphs[0]
     p_title.text = title_text
-    p_title.font.size = Pt(22)
+    p_title.font.size = Pt(20)
     p_title.font.bold = True
     p_title.font.color.rgb = TEXT_WHITE
 
     if subtitle_text:
-        sub_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(11.5), Inches(0.4))
+        sub_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.35), Inches(11.5), Inches(0.4))
         tf_sub = sub_box.text_frame
         tf_sub.word_wrap = True
         p_sub = tf_sub.paragraphs[0]
         p_sub.text = subtitle_text
-        p_sub.font.size = Pt(12)
+        p_sub.font.size = Pt(11)
         p_sub.font.color.rgb = TEXT_MUTED
 
 def add_footer(slide, slide_num, total_slides=17):
-    footer_box = slide.shapes.add_textbox(Inches(0.8), Inches(6.9), Inches(11.733), Inches(0.4))
+    footer_box = slide.shapes.add_textbox(Inches(0.8), Inches(6.9), Inches(11.733), Inches(0.35))
     tf = footer_box.text_frame
     p = tf.paragraphs[0]
-    p.text = f"Google Cloud Hackathon 2026 | Quota Management Control Plane  •  Slide {slide_num} of {total_slides}  •  Team: Y. Navaneeth Reddy, Shivam Kumar, Niket Kumar, Allam Sahithi"
-    p.font.size = Pt(9)
+    p.text = f"Google Cloud Hackathon 2026 | Quota Management Control Plane  •  Slide {slide_num} of {total_slides}"
+    p.font.size = Pt(8.5)
     p.font.color.rgb = RGBColor(100, 116, 139)
 
 def add_content_and_image(slide, bullets, image_filename, slide_num):
-    # Left Content Container Card
-    content_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(2.0), Inches(6.0), Inches(4.7))
+    # Left Content Container Card - sized to never overflow
+    content_card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.85), Inches(6.0), Inches(4.85))
     content_card.fill.solid()
     content_card.fill.fore_color.rgb = CARD_BG
     content_card.line.color.rgb = BORDER_COLOR
@@ -85,75 +86,75 @@ def add_content_and_image(slide, bullets, image_filename, slide_num):
 
     tf = content_card.text_frame
     tf.word_wrap = True
-    tf.margin_left = Inches(0.3)
-    tf.margin_right = Inches(0.3)
-    tf.margin_top = Inches(0.3)
+    tf.margin_left = Inches(0.25)
+    tf.margin_right = Inches(0.25)
+    tf.margin_top = Inches(0.25)
+    tf.margin_bottom = Inches(0.2)
 
     for i, (heading, desc) in enumerate(bullets):
         p1 = tf.add_paragraph() if i > 0 else tf.paragraphs[0]
         p1.text = f"•  {heading}"
         p1.font.bold = True
-        p1.font.size = Pt(13)
+        p1.font.size = Pt(11)
         p1.font.color.rgb = ACCENT_BLUE if i % 2 == 0 else ACCENT_CYAN
-        p1.space_before = Pt(8) if i > 0 else Pt(0)
+        p1.space_before = Pt(5) if i > 0 else Pt(0)
 
         p2 = tf.add_paragraph()
         p2.text = f"    {desc}"
-        p2.font.size = Pt(11)
+        p2.font.size = Pt(9.5)
         p2.font.color.rgb = TEXT_WHITE
-        p2.space_before = Pt(2)
+        p2.space_before = Pt(1.5)
 
     # Right Image
     img_path = os.path.join(ASSETS_DIR, image_filename)
     if os.path.exists(img_path):
-        slide.shapes.add_picture(img_path, Inches(7.1), Inches(2.0), Inches(5.4), Inches(4.7))
+        slide.shapes.add_picture(img_path, Inches(7.1), Inches(1.85), Inches(5.4), Inches(4.85))
 
     add_footer(slide, slide_num)
 
 # ==========================================
-# Slide 1: Title Slide
+# Slide 1: Title Slide (No roles assigned)
 # ==========================================
 slide1 = prs.slides.add_slide(blank_layout)
 set_slide_background(slide1)
 
-# Large Title Card
 t_card = slide1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.0), Inches(6.4), Inches(5.5))
 t_card.fill.solid()
 t_card.fill.fore_color.rgb = CARD_BG
 t_card.line.color.rgb = ACCENT_BLUE
-t_card.line.width = Pt(2)
+t_card.line.width = Pt(1.5)
 
 tf1 = t_card.text_frame
 tf1.word_wrap = True
-tf1.margin_left = Inches(0.4)
-tf1.margin_right = Inches(0.4)
-tf1.margin_top = Inches(0.4)
+tf1.margin_left = Inches(0.35)
+tf1.margin_right = Inches(0.35)
+tf1.margin_top = Inches(0.35)
 
 p = tf1.paragraphs[0]
 p.text = "GOOGLE CLOUD HACKATHON 2026"
-p.font.size = Pt(11)
+p.font.size = Pt(10)
 p.font.bold = True
 p.font.color.rgb = ACCENT_CYAN
 
 p2 = tf1.add_paragraph()
 p2.text = "Quota Management &\nIncrease Request Planning"
-p2.font.size = Pt(25)
+p2.font.size = Pt(23)
 p2.font.bold = True
 p2.font.color.rgb = TEXT_WHITE
-p2.space_before = Pt(10)
+p2.space_before = Pt(8)
 
 p3 = tf1.add_paragraph()
 p3.text = "An Enterprise FinOps & Infrastructure Control Plane for Real-Time Telemetry Ingestion, Dynamic Risk Analysis, and Programmatic GCP Quota Scaling."
-p3.font.size = Pt(11)
+p3.font.size = Pt(10)
 p3.font.color.rgb = TEXT_MUTED
-p3.space_before = Pt(10)
+p3.space_before = Pt(8)
 
 p4 = tf1.add_paragraph()
-p4.text = "PROJECT TEAM MEMBERS:"
-p4.font.size = Pt(11)
+p4.text = "TEAM MEMBERS:"
+p4.font.size = Pt(10)
 p4.font.bold = True
 p4.font.color.rgb = ACCENT_AMBER
-p4.space_before = Pt(20)
+p4.space_before = Pt(16)
 
 team_members = [
     ("2400030020", "YADAMAKANTI NAVANEETH REDDY"),
@@ -163,26 +164,25 @@ team_members = [
 ]
 for reg, name in team_members:
     p_mem = tf1.add_paragraph()
-    p_mem.text = f"•  {name}  [{reg}]"
-    p_mem.font.size = Pt(10.5)
+    p_mem.text = f"•  {reg}  —  {name}"
+    p_mem.font.size = Pt(10)
     p_mem.font.color.rgb = TEXT_WHITE
-    p_mem.space_before = Pt(2)
+    p_mem.space_before = Pt(2.5)
 
-# Hero Image on right
 slide1.shapes.add_picture(os.path.join(ASSETS_DIR, "slide1_hero.png"), Inches(7.5), Inches(1.0), Inches(5.0), Inches(5.5))
 add_footer(slide1, 1)
 
 # ==========================================
-# Slide 2: Team Introduction & Roles
+# Slide 2: Team Members (No roles assigned)
 # ==========================================
 slide2 = prs.slides.add_slide(blank_layout)
 set_slide_background(slide2)
-add_header(slide2, "Core Engineering Team", "Project Team Roster & Architectural Responsibilities", "Specialized cross-functional engineering contributions across the full stack.")
+add_header(slide2, "Project Team", "Engineering Team & Student Roster", "Collaborative development team for Google Cloud Hackathon 2026.")
 add_content_and_image(slide2, [
-    ("Yadamakanti Navaneeth Reddy (2400030020)", "Lead Cloud Architect & Full-Stack Lead: Designed core architecture, state machine workflow, and end-to-end GCP integration."),
-    ("Shivam Kumar Saw (2400039056)", "Backend & API Integration Specialist: Built Express REST gateway, Zod validation schemas, Morgan logging, and error handling layers."),
-    ("Niket Kumar (2400033292)", "DevOps & Cloud Infrastructure Lead: Provisioned Terraform IaC, Docker multi-stage containers, GitHub Actions CI/CD, and Cloud Build."),
-    ("Allam Sahithi (2400033195)", "Frontend UX & Testing Engineer: Implemented Tailwind design system, WCAG 2.1 AA accessibility, and automated Jest test suites."),
+    ("YADAMAKANTI NAVANEETH REDDY", "Registration Number: 2400030020"),
+    ("SHIVAM KUMAR SAW", "Registration Number: 2400039056"),
+    ("NIKET KUMAR", "Registration Number: 2400033292"),
+    ("ALLAM SAHITHI", "Registration Number: 2400033195"),
 ], "slide2_team.png", 2)
 
 # ==========================================
@@ -225,7 +225,7 @@ add_content_and_image(slide5, [
 ], "slide5_arch.png", 5)
 
 # ==========================================
-# Slide 6: Telemetry Ingestion
+# Slide 6: Telemetry Ingestion Pipeline
 # ==========================================
 slide6 = prs.slides.add_slide(blank_layout)
 set_slide_background(slide6)
@@ -310,7 +310,7 @@ set_slide_background(slide12)
 add_header(slide12, "GCP Cloud Dispatch", "Outbound Quota Preferences & Resilient Retry Engine", "Direct programmatic integration with Google Cloud Quotas API.")
 add_content_and_image(slide12, [
     ("Google Cloud Quota Preferences API", "Compiles approved adjustments into standard GCP quotaPreferences payloads with preferredValue and justification."),
-    ("Exponential Backoff with Full Jitter", "Handles transient network timeouts and rate limits (429/503) using truncated exponential backoff (t = min(t_max, t_base × 2^attempt) + jitter)."),
+    ("Exponential Backoff with Full Jitter", "Handles transient network timeouts and rate limits (429/503) using truncated exponential backoff."),
     ("Application Default Credentials (ADC)", "Authenticates securely via Google OAuth2 service account tokens without hardcoded credentials."),
     ("Status Synchronization", "Updates internal request state to GCP_SUBMITTED upon successful API dispatch, logging preference ID."),
 ], "slide12_gcp_api.png", 12)
@@ -373,37 +373,36 @@ add_content_and_image(slide16, [
 slide17 = prs.slides.add_slide(blank_layout)
 set_slide_background(slide17)
 
-# Large Closing Hero Card
 c_card = slide17.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.0), Inches(6.4), Inches(5.5))
 c_card.fill.solid()
 c_card.fill.fore_color.rgb = CARD_BG
 c_card.line.color.rgb = ACCENT_EMERALD
-c_card.line.width = Pt(2)
+c_card.line.width = Pt(1.5)
 
 tf17 = c_card.text_frame
 tf17.word_wrap = True
-tf17.margin_left = Inches(0.4)
-tf17.margin_right = Inches(0.4)
-tf17.margin_top = Inches(0.4)
+tf17.margin_left = Inches(0.35)
+tf17.margin_right = Inches(0.35)
+tf17.margin_top = Inches(0.35)
 
 p = tf17.paragraphs[0]
 p.text = "CLOUD DEPLOYMENT & SUMMARY"
-p.font.size = Pt(11)
+p.font.size = Pt(10)
 p.font.bold = True
 p.font.color.rgb = ACCENT_EMERALD
 
 p2 = tf17.add_paragraph()
 p2.text = "Production Ready & Verified"
-p2.font.size = Pt(24)
+p2.font.size = Pt(22)
 p2.font.bold = True
 p2.font.color.rgb = TEXT_WHITE
-p2.space_before = Pt(8)
+p2.space_before = Pt(6)
 
 p3 = tf17.add_paragraph()
 p3.text = "The Quota Management and Increase Request Planning Control Plane is fully built, tested, and running locally with live endpoints:"
-p3.font.size = Pt(11)
+p3.font.size = Pt(10)
 p3.font.color.rgb = TEXT_MUTED
-p3.space_before = Pt(8)
+p3.space_before = Pt(6)
 
 features = [
     ("Frontend Dashboard:", "http://localhost:3000"),
@@ -416,21 +415,19 @@ features = [
 for title, val in features:
     p_f = tf17.add_paragraph()
     p_f.text = f"•  {title} {val}"
-    p_f.font.size = Pt(10)
+    p_f.font.size = Pt(9.5)
     p_f.font.color.rgb = TEXT_WHITE
     p_f.space_before = Pt(3)
 
 p_end = tf17.add_paragraph()
 p_end.text = "Thank You! Ready for Questions & Live Demonstration."
-p_end.font.size = Pt(13)
+p_end.font.size = Pt(12)
 p_end.font.bold = True
 p_end.font.color.rgb = ACCENT_CYAN
-p_end.space_before = Pt(16)
+p_end.space_before = Pt(14)
 
-# Right image
 slide17.shapes.add_picture(os.path.join(ASSETS_DIR, "slide17_deployment.png"), Inches(7.5), Inches(1.0), Inches(5.0), Inches(5.5))
 add_footer(slide17, 17)
 
-# Save Presentation
 prs.save(OUTPUT_PPTX)
-print(f"Presentation generated successfully: {OUTPUT_PPTX}")
+print(f"Presentation regenerated successfully: {OUTPUT_PPTX}")
