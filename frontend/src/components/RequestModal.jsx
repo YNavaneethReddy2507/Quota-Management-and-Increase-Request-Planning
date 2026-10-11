@@ -107,14 +107,19 @@ export default function RequestModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn"
+    >
       <div className="glass-panel w-full max-w-xl rounded-2xl border border-slate-700/80 bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
         <div className="p-6 border-b border-slate-800 flex items-start justify-between bg-slate-950/40">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <h3 className="text-base font-bold text-white tracking-tight">
+              <span className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true"></span>
+              <h3 id="modal-title" className="text-base font-bold text-white tracking-tight">
                 Plan Quota Increase Request
               </h3>
             </div>
@@ -123,10 +128,12 @@ export default function RequestModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label="Close Increase Request Modal"
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 

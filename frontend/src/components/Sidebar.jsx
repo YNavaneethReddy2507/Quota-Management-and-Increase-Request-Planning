@@ -110,7 +110,7 @@ export default function Sidebar({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav aria-label="Main Application Navigation" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
           Navigation
         </div>
@@ -126,14 +126,16 @@ export default function Sidebar({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={item.label}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
                 isActive
                   ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} aria-hidden="true" />
                 <span>{item.label}</span>
               </div>
               {item.badge && (

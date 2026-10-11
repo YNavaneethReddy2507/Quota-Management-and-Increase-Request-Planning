@@ -175,6 +175,13 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 26: UI Polish and Accessibility
+- **Objective:** Audit and improve WCAG 2.1 AA accessibility compliance across all views, ensure semantic landmark HTML elements, configure ARIA attributes and keyboard focus management, verify color contrast ratios, and document in `docs/ACCESSIBILITY.md`.
+- **Implementation:** Added accessible skip link `<a href="#main-content">` to `Layout.jsx`, added semantic `nav`, `main`, `header`, and `aside` landmark tags, attached `aria-current="page"` and `aria-label` to sidebar navigation, added `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` to `RequestModal.jsx`, verified WCAG AAA contrast ratios, and authored `docs/ACCESSIBILITY.md`.
+- **Validation:** Successfully compiled frontend bundle (`vite build` passing with 0 warnings).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
 
 
 

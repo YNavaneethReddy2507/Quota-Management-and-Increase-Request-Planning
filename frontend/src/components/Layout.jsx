@@ -20,6 +20,14 @@ export default function Layout({
 }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      {/* Accessible skip link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-blue-600 focus:text-white"
+      >
+        Skip to main content
+      </a>
+
       {/* Fixed Vertical Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -45,7 +53,7 @@ export default function Layout({
         />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-8 ml-64 overflow-y-auto">
+        <main id="main-content" tabIndex="-1" role="main" className="flex-1 p-8 ml-64 overflow-y-auto outline-none">
           <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>
