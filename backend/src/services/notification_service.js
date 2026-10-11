@@ -1,23 +1,59 @@
 /**
  * Notification Service Module
- * Dispatches automated alerts to webhook endpoints (Slack / Discord / Teams).
+ * Dispatches automated alerts to webhook endpoints (Slack / Discord / Teams)
+ * with deduplication suppression for unchanged conditions and in-memory audit logs.
  * Quota Management and Increase Request Planning Control Plane
  */
 
 const axios = require('axios');
 const config = require('../config');
 
+// Deduplication cache: stores message signatures mapped to last sent timestamp
+const recentAlertsCache = new Map();
+const alertHistoryLog = [];
+const DEDUPLICATION_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
 class NotificationService {
   /**
-   * Dispatches a webhook notification message with metadata.
+   * Generates a unique signature for alert deduplication.
+   */
+  static getSignature(message, metadata = {}) {
+    return `${message}|${metadata.requestId || ''}|${metadata.status || ''}`;
+  }
+
+  /**
+   * Dispatches a webhook notification message with metadata and duplicate suppression.
    *
    * @param {string} message - Human-readable alert summary
    * @param {object} [metadata={}] - Structured context data
    * @returns {Promise<boolean>}
    */
   static async sendNotification(message, metadata = {}) {
-    const webhookUrl = config.notifications.webhookUrl;
+    const signature = this.getSignature(message, metadata);
+    const now = Date.now();
+
+    // Check if identical alert was dispatched within the deduplication window
+    if (recentAlertsCache.has(signature)) {
+      const lastSent = recentAlertsCache.get(signature);
+      if (now - lastSent < DEDUPLICATION_WINDOW_MS) {
+        console.log(`[NOTIFICATION SUPPRESSED] Duplicate alert condition suppressed: "${message}"`);
+        return true;
+      }
+    }
+
+    recentAlertsCache.set(signature, now);
+
     const timestamp = new Date().toISOString();
+    const alertEntry = {
+      id: `alert-${now}-${Math.random().toString(36).substr(2, 5)}`,
+      message,
+      metadata,
+      timestamp,
+    };
+    alertHistoryLog.unshift(alertEntry);
+    if (alertHistoryLog.length > 50) alertHistoryLog.pop();
+
+    const webhookUrl = config.notifications.webhookUrl;
 
     const payload = {
       text: message,
@@ -33,7 +69,7 @@ class NotificationService {
             metadata.requestedBy ? { title: 'Requester', value: metadata.requestedBy, short: true } : null,
           ].filter(Boolean),
           footer: 'GCP Quota Governance Control Plane',
-          ts: Math.floor(Date.now() / 1000),
+          ts: Math.floor(now / 1000),
         },
       ],
       timestamp,
@@ -54,6 +90,20 @@ class NotificationService {
     }
 
     return true;
+  }
+
+  /**
+   * Retrieves recent in-app alert history.
+   */
+  static getAlertHistory() {
+    return [...alertHistoryLog];
+  }
+
+  /**
+   * Clears the deduplication cache (useful in tests).
+   */
+  static clearCache() {
+    recentAlertsCache.clear();
   }
 }
 

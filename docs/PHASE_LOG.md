@@ -133,6 +133,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 20: Notifications and Alerts
+- **Objective:** Implement configurable in-app alerts, notification preferences, threshold rules, and suitable integrations with authorized channels while preventing duplicate alerts.
+- **Implementation:** Upgraded `NotificationService` with a 5-minute deduplication window to suppress redundant alert spam for unchanged conditions, built an in-memory alert history log, and exposed `GET /api/v1/notifications` for real-time frontend in-app alerts viewing.
+- **Validation:** Created and executed `tests/notifications.test.js` (41/41 tests passing across 11 test suites).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
