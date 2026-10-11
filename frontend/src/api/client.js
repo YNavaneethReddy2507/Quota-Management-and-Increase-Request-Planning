@@ -84,6 +84,11 @@ export const api = {
     reject: (id, comments) =>
       apiClient.patch(`/requests/${id}/reject`, { admin_comments: comments }),
   },
+  settings: {
+    get: () => apiClient.get('/settings'),
+    update: (data) => apiClient.patch('/settings', data),
+    getAudit: () => apiClient.get('/settings/audit'),
+  },
 };
 
 export default apiClient;

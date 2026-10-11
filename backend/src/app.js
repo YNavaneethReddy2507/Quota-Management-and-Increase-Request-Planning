@@ -57,10 +57,12 @@ app.get('/api/v1/health', (req, res) => {
 const projectsRouter = require('./routes/projects');
 const quotasRouter = require('./routes/quotas');
 const requestsRouter = require('./routes/requests');
+const settingsRouter = require('./routes/settings');
 
 app.use('/api/v1/projects', projectsRouter);
 app.use('/api/v1/quotas', quotasRouter);
 app.use('/api/v1/requests', requestsRouter);
+app.use('/api/v1/settings', settingsRouter);
 
 // GET /api/v1/notifications - In-App Alert and Webhook Audit History
 const NotificationService = require('./services/notification_service');

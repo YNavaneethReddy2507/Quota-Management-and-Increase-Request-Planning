@@ -8,6 +8,7 @@ import Analytics from './pages/Analytics';
 import Forecasting from './pages/Forecasting';
 import Alerts from './pages/Alerts';
 import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 import RequestModal from './components/RequestModal';
 import { api, setClientUserRole } from './api/client';
 
@@ -165,19 +166,7 @@ export default function App() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="glass-panel rounded-2xl p-8 border border-slate-800 space-y-6">
-            <h2 className="text-xl font-bold text-white">System Settings & GCP IAM Governance</h2>
-            <p className="text-xs text-slate-400">
-              Configured Service Account: <span className="font-mono text-blue-400">quota-manager-sa@my-gcp-project.iam.gserviceaccount.com</span>
-            </p>
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 space-y-2">
-              <p className="text-slate-400 font-semibold uppercase">Assigned Roles:</p>
-              <p>&bull; roles/servicemanagement.quotaViewer</p>
-              <p>&bull; roles/servicemanagement.quotaAdmin</p>
-              <p>&bull; roles/monitoring.viewer</p>
-              <p>&bull; roles/cloudquotas.admin</p>
-            </div>
-          </div>
+          <Settings userRole={userRole} />
         )}
 
         {/* Request Planner Modal */}
