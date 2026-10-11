@@ -90,8 +90,158 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+// Audit log for export tracking
+const exportAuditLogs = [];
+
+function classifyRisk(utilization) {
+  if (utilization >= 90) return 'CRITICAL';
+  if (utilization >= 80) return 'HIGH';
+  if (utilization >= 60) return 'MODERATE';
+  return 'NORMAL';
+}
+
+function filterQuotaList(quotas, { project_id, service, risk_level }) {
+  let list = [...quotas];
+  if (project_id) {
+    list = list.filter((q) => q.project_id === project_id);
+  }
+  if (service) {
+    list = list.filter((q) => q.metric_name.toLowerCase().includes(service.toLowerCase()));
+  }
+  if (risk_level) {
+    const targetRisk = risk_level.toUpperCase();
+    list = list.filter((q) => classifyRisk(q.utilization_percentage) === targetRisk);
+  }
+  return list;
+}
+
+// GET /api/v1/quotas/export/csv - Export Quota Telemetry as CSV
+router.get('/export/csv', async (req, res) => {
+  try {
+    const { project_id, service, risk_level } = req.query;
+    let quotas = await db.quota_metrics.findMany();
+    quotas = filterQuotaList(quotas, { project_id, service, risk_level });
+
+    const auditEntry = {
+      format: 'CSV',
+      timestamp: new Date().toISOString(),
+      record_count: quotas.length,
+      filters: { project_id, service, risk_level },
+    };
+    exportAuditLogs.push(auditEntry);
+    console.log(`[AUDIT EXPORT] Download initiated: CSV format, ${quotas.length} records. Filters:`, auditEntry.filters);
+
+    const headers = ['Metric Name', 'Region', 'Current Usage', 'Quota Limit', 'Utilization %', 'Risk Classification'];
+    const rows = quotas.map((q) => {
+      const risk = classifyRisk(q.utilization_percentage);
+      return [
+        `"${q.metric_name}"`,
+        `"${q.region}"`,
+        q.current_usage,
+        q.quota_limit,
+        `${q.utilization_percentage}%`,
+        `"${risk}"`,
+      ].join(',');
+    });
+
+    const csvData = [headers.join(','), ...rows].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="gcp_quota_governance_report.csv"');
+    return res.status(200).send(csvData);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate CSV report',
+      message: error.message,
+    });
+  }
+});
+
+// GET /api/v1/quotas/export/json - Export Quota Telemetry as JSON with metadata
+router.get('/export/json', async (req, res) => {
+  try {
+    const { project_id, service, risk_level } = req.query;
+    let quotas = await db.quota_metrics.findMany();
+    quotas = filterQuotaList(quotas, { project_id, service, risk_level });
+
+    const auditEntry = {
+      format: 'JSON',
+      timestamp: new Date().toISOString(),
+      record_count: quotas.length,
+      filters: { project_id, service, risk_level },
+    };
+    exportAuditLogs.push(auditEntry);
+    console.log(`[AUDIT EXPORT] Download initiated: JSON format, ${quotas.length} records.`);
+
+    return res.status(200).json({
+      success: true,
+      metadata: {
+        export_timestamp: new Date().toISOString(),
+        governance_system: 'Google Cloud Quota Control Plane',
+        filters_applied: { project_id: project_id || 'all', service: service || 'all', risk_level: risk_level || 'all' },
+        total_records: quotas.length,
+      },
+      data: quotas.map((q) => ({
+        ...q,
+        risk_classification: classifyRisk(q.utilization_percentage),
+      })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate JSON export',
+      message: error.message,
+    });
+  }
+});
+
+// GET /api/v1/quotas/export/summary - Executive Summary Report
+router.get('/export/summary', async (req, res) => {
+  try {
+    const quotas = await db.quota_metrics.findMany();
+    const critical = quotas.filter((q) => q.utilization_percentage >= 90);
+    const high = quotas.filter((q) => q.utilization_percentage >= 80 && q.utilization_percentage < 90);
+    const moderate = quotas.filter((q) => q.utilization_percentage >= 60 && q.utilization_percentage < 80);
+    const normal = quotas.filter((q) => q.utilization_percentage < 60);
+
+    const avgUtilization = quotas.length > 0
+      ? (quotas.reduce((acc, q) => acc + q.utilization_percentage, 0) / quotas.length).toFixed(1)
+      : '0.0';
+
+    return res.status(200).json({
+      success: true,
+      report_title: 'Google Cloud Quotas Executive Governance Summary',
+      generated_at: new Date().toISOString(),
+      metrics_summary: {
+        total_quotas_monitored: quotas.length,
+        average_utilization_pct: parseFloat(avgUtilization),
+        risk_breakdown: {
+          critical: critical.length,
+          high: high.length,
+          moderate: moderate.length,
+          normal: normal.length,
+        },
+      },
+      actionable_recommendations: critical.map((c) => ({
+        metric_name: c.metric_name,
+        region: c.region,
+        current_utilization: `${c.utilization_percentage}%`,
+        recommendation: `Immediate quota increase required: current limit ${c.quota_limit} is nearing exhaustion (${c.current_usage} used).`,
+      })),
+      audit_export_history_count: exportAuditLogs.length,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate executive summary report',
+      message: error.message,
+    });
+  }
+});
+
 // GET /api/v1/quotas/:id
 router.get('/:id', async (req, res) => {
+
   try {
     const quota = await db.quota_metrics.findUnique({
       where: { id: req.params.id },
