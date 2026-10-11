@@ -161,6 +161,13 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 24: Security Hardening
+- **Objective:** Implement sliding-window rate limiting on API endpoints, enforce strict OWASP security headers, validate request payload size bounds, audit against secret leaks, document complete threat model in `docs/SECURITY.md`.
+- **Implementation:** Created `backend/src/middleware/security.js` with OWASP security headers (`nosniff`, `DENY`, `CSP`, `HSTS`, `X-XSS-Protection`) and IP rate limiter (200 req / 15 min window with 429 response and retry headers), capped Express JSON payloads to 1MB, and authored comprehensive `docs/SECURITY.md` threat model.
+- **Validation:** Created and ran `tests/security.test.js` (56/56 tests passing across 15 test suites).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
 
 
 
