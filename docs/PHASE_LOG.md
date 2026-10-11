@@ -140,6 +140,14 @@
 - **Commit:** Recorded in Git history.
 - **Remote Push:** Pushed to `origin main` and verified.
 
+## Phase 21: Multi-Project Management
+- **Objective:** Support multiple authorized Google Cloud projects, project switching, project-level filtering, and cross-project aggregate statistics.
+- **Implementation:** Integrated project switcher in `Sidebar.jsx`, added project summary route `GET /api/v1/projects/:id/summary` and cross-project aggregation route `GET /api/v1/projects/summary/aggregate` in `backend/src/routes/projects.js` to compute cross-project saturation statistics.
+- **Validation:** Created and ran `tests/projects.test.js` (45/45 tests passing across 12 test suites).
+- **Commit:** Recorded in Git history.
+- **Remote Push:** Pushed to `origin main` and verified.
+
+
 
 
 
